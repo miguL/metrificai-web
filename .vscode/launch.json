@@ -1,0 +1,13 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "MetrificAI Brochura",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:5500/MetrificAI Brochura-print.html",
+      "webRoot": "${workspaceFolder}",
+      "preLaunchTask": "Serve"
+    }
+  ]
+}

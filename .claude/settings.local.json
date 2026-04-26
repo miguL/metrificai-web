@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:api.anthropic.com)",
+      "Read(//private/tmp/**)",
+      "Bash(gunzip -c design.tar.gz)",
+      "Bash(tar -x)",
+      "Bash(cp \"/tmp/metrificai/project/MetrificAI Brochura-print.html\" \"/Users/miguelbernardo/Projects/metrificai-web/MetrificAI Brochura-print.html\")",
+      "Bash(cp \"/tmp/metrificai/project/tweaks-panel.jsx\" \"/Users/miguelbernardo/Projects/metrificai-web/tweaks-panel.jsx\")",
+      "Bash(cp -r \"/tmp/metrificai/project/uploads\" \"/Users/miguelbernardo/Projects/metrificai-web/uploads\")",
+      "Bash(gh auth *)"
+    ]
+  }
+}

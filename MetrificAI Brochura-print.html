@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MetrificAI — Brochura</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel" src="tweaks-panel.jsx"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Montserrat', sans-serif; background: #f0f0ee; }
+  @media print {
+    @page { size: A4; margin: 0; }
+    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    body { background: white !important; }
+    .no-print { padding: 0 !important; background: none !important; }
+    .page {
+      box-shadow: none !important;
+      margin: 0 !important;
+      border-radius: 0 !important;
+      max-width: 100% !important;
+    }
+    /* Force page breaks between major sections */
+    .page > div {
+      break-inside: avoid;
+    }
+    /* Hide tweaks panel */
+    .twk-panel { display: none !important; }
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+  "primaryColor": "#0d0d0d",
+  "accentColor": "#00C8CF",
+  "ctaColor": "#F5A020",
+  "layout": "dark-hero",
+  "showScreenshots": true
+}/*EDITMODE-END*/;
+
+function App() {
+  const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
+  const { primaryColor, accentColor, ctaColor, layout, showScreenshots } = t;
+
+  const isDark = layout === 'dark-hero';
+
+  const css = `
+    :root {
+      --primary: ${primaryColor};
+      --accent: ${accentColor};
+      --cta: ${ctaColor};
+      --accent-dim: ${accentColor}22;
+      --accent-mid: ${accentColor}44;
+    }
+  `;
+
+  return (
+    <>
+      <style>{css}</style>
+      <TweaksPanel>
+        <TweakSection label="Cores">
+          <TweakColor id="primaryColor" label="Fundo Escuro" />
+          <TweakColor id="accentColor" label="Cor Principal (Teal)" />
+          <TweakColor id="ctaColor" label="Cor CTA (Laranja)" />
+        </TweakSection>
+        <TweakSection label="Layout">
+          <TweakRadio id="layout" label="Hero" options={[{label:"Escuro",value:"dark-hero"},{label:"Claro",value:"light-hero"}]} />
+          <TweakToggle id="showScreenshots" label="Mostrar App Screenshots" />
+        </TweakSection>
+      </TweaksPanel>
+      <Brochure isDark={isDark} showScreenshots={showScreenshots} />
+    </>
+  );
+}
+
+function Logo({ size = 28, light = false }) {
+  const src = light ? 'uploads/logo.png' : 'uploads/white_logo.png';
+  const h = size * 1.8;
+  const w = h * (400 / 110);
+  return <img src={src} alt="MetrificAI" style={{ height: h, width: 'auto', display: 'block' }} />;
+}
+
+function Icon({ name, size = 20, color = 'var(--accent)' }) {
+  const icons = {
+    camera: <><rect x="3" y="7" width="18" height="13" rx="2" stroke={color} strokeWidth="1.8" fill="none"/><circle cx="12" cy="13" r="3" stroke={color} strokeWidth="1.8" fill="none"/><path d="M9 7V5h6v2" stroke={color} strokeWidth="1.8" strokeLinejoin="round" fill="none"/></>,
+    brain: <><path d="M12 4C9 4 7 6 7 8.5c0 1.2.4 2.2 1 3-.6.8-1 1.8-1 3C7 17 9 19 12 19s5-2 5-4.5c0-1.2-.4-2.2-1-3 .6-.8 1-1.8 1-3C17 6 15 4 12 4z" stroke={color} strokeWidth="1.8" fill="none"/><path d="M12 4v15M8 10h8M8 14h8" stroke={color} strokeWidth="1.4" fill="none"/></>,
+    file: <><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" stroke={color} strokeWidth="1.8" fill="none"/><polyline points="14 2 14 8 20 8" stroke={color} strokeWidth="1.8" fill="none"/></>,
+    download: <><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" stroke={color} strokeWidth="1.8" fill="none"/><polyline points="7 10 12 15 17 10" stroke={color} strokeWidth="1.8" fill="none"/><line x1="12" y1="15" x2="12" y2="3" stroke={color} strokeWidth="1.8"/></>,
+    chart: <><line x1="18" y1="20" x2="18" y2="10" stroke={color} strokeWidth="2" strokeLinecap="round"/><line x1="12" y1="20" x2="12" y2="4" stroke={color} strokeWidth="2" strokeLinecap="round"/><line x1="6" y1="20" x2="6" y2="14" stroke={color} strokeWidth="2" strokeLinecap="round"/></>,
+    shield: <><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke={color} strokeWidth="1.8" fill="none"/><polyline points="9 12 11 14 15 10" stroke={color} strokeWidth="1.8" fill="none"/></>,
+    euro: <><circle cx="12" cy="12" r="9" stroke={color} strokeWidth="1.8" fill="none"/><path d="M15 8.5A4 4 0 009 12a4 4 0 006 3.5M7 11h6M7 13h6" stroke={color} strokeWidth="1.8" strokeLinecap="round" fill="none"/></>,
+    users: <><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" stroke={color} strokeWidth="1.8" fill="none"/><circle cx="9" cy="7" r="4" stroke={color} strokeWidth="1.8" fill="none"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" stroke={color} strokeWidth="1.8" fill="none"/></>,
+    clock: <><circle cx="12" cy="12" r="9" stroke={color} strokeWidth="1.8" fill="none"/><polyline points="12 7 12 12 15 15" stroke={color} strokeWidth="1.8" fill="none"/></>,
+    check: <><polyline points="20 6 9 17 4 12" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" fill="none"/></>,
+    star: <><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" stroke={color} strokeWidth="1.8" fill="none"/></>,
+    zap: <><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" stroke={color} strokeWidth="1.8" fill={color + '22'}/></>,
+    map: <><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" stroke={color} strokeWidth="1.8" fill="none"/><line x1="8" y1="2" x2="8" y2="18" stroke={color} strokeWidth="1.4"/><line x1="16" y1="6" x2="16" y2="22" stroke={color} strokeWidth="1.4"/></>,
+    cloud: <><path d="M18 10h-1.26A8 8 0 109 20h9a5 5 0 000-10z" stroke={color} strokeWidth="1.8" fill="none"/></>,
+    lock: <><rect x="5" y="11" width="14" height="11" rx="2" stroke={color} strokeWidth="1.8" fill="none"/><path d="M7 11V7a5 5 0 0110 0v4" stroke={color} strokeWidth="1.8" fill="none"/></>,
+    google: <><circle cx="12" cy="12" r="9" stroke={color} strokeWidth="1.8" fill="none"/><path d="M12 12h5a5 5 0 11-1.5-3.5" stroke={color} strokeWidth="1.8" fill="none"/></>,
+    arrow: <><line x1="5" y1="12" x2="19" y2="12" stroke={color} strokeWidth="2" strokeLinecap="round"/><polyline points="12 5 19 12 12 19" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/></>,
+  };
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={{flexShrink:0}}>
+      {icons[name] || null}
+    </svg>
+  );
+}
+
+function Brochure({ isDark, showScreenshots }) {
+  const heroStyle = isDark
+    ? { background: 'var(--primary)', color: '#fff' }
+    : { background: 'linear-gradient(135deg, #f8f8f6 0%, #edf4f4 100%)', color: 'var(--primary)' };
+
+  return (
+    <div className="no-print" style={{ padding: '32px 16px', minHeight: '100vh' }}>
+      <div className="page" style={{
+        maxWidth: 900, margin: '0 auto',
+        background: '#fff',
+        borderRadius: 16,
+        overflow: 'hidden',
+        boxShadow: '0 8px 60px rgba(0,0,0,0.18)',
+        fontFamily: "'Montserrat', sans-serif"
+      }}>
+
+        {/* HERO */}
+        <div style={{ ...heroStyle, padding: '60px 64px 52px', position: 'relative', overflow: 'hidden' }}>
+          {/* Decorative grid */}
+          <div style={{
+            position: 'absolute', inset: 0, opacity: 0.04,
+            backgroundImage: 'linear-gradient(var(--accent) 1px, transparent 1px), linear-gradient(90deg, var(--accent) 1px, transparent 1px)',
+            backgroundSize: '40px 40px'
+          }}/>
+          {/* Glow blob */}
+          <div style={{
+            position: 'absolute', top: -80, right: -80, width: 360, height: 360,
+            background: 'var(--accent)', opacity: 0.08, borderRadius: '50%', filter: 'blur(80px)'
+          }}/>
+
+          <div style={{ position: 'relative', zIndex: 1 }}>
+            <Logo size={30} light={isDark} />
+            <div style={{ height: 36 }}/>
+            <div style={{
+              display: 'inline-block',
+              background: 'var(--accent-dim)',
+              border: '1px solid var(--accent-mid)',
+              color: 'var(--accent)',
+              fontSize: 10, fontWeight: 700, letterSpacing: 2,
+              padding: '5px 12px', borderRadius: 4, marginBottom: 20,
+              textTransform: 'uppercase'
+            }}>Plataforma SaaS · Empresas de Construção · Portugal</div>
+            <h1 style={{
+              fontSize: 44, fontWeight: 900, lineHeight: 1.1,
+              maxWidth: 560,
+              color: isDark ? '#fff' : 'var(--primary)',
+              letterSpacing: -1
+            }}>
+              Da visita à obra à proposta profissional —{' '}
+              <span style={{ color: 'var(--accent)' }}>em minutos.</span>
+            </h1>
+            <p style={{
+              marginTop: 20, fontSize: 15, fontWeight: 400, lineHeight: 1.7,
+              maxWidth: 520, opacity: 0.75,
+              color: isDark ? '#fff' : 'var(--primary)'
+            }}>
+              O MetrificAI usa inteligência artificial para gerar mapas de trabalhos e propostas orçamentais completas a partir de fotos, notas de voz e plantas — sem tabelas manuais, sem horas perdidas.
+            </p>
+            <div style={{ marginTop: 32, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+              <button style={{
+                background: 'var(--cta)', color: '#fff',
+                border: 'none', borderRadius: 8,
+                padding: '14px 28px', fontFamily: 'inherit',
+                fontWeight: 700, fontSize: 14, cursor: 'pointer',
+                letterSpacing: 0.3
+              }}>Solicitar Demonstração →</button>
+
+            </div>
+          </div>
+
+          {/* Stat pills */}
+          <div style={{
+            position: 'relative', zIndex: 1,
+            display: 'flex', gap: 16, marginTop: 48, flexWrap: 'wrap'
+          }}>
+            {[
+              { label: 'Horas poupadas por orçamento', value: '4–6h' },
+              { label: 'IA Gemini via Vertex AI', value: 'Google Cloud' },
+              { label: 'Dados 100% na Europa', value: 'RGPD ✓' },
+            ].map(s => (
+              <div key={s.label} style={{
+                background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)',
+                border: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)'}`,
+                borderRadius: 8, padding: '12px 20px'
+              }}>
+                <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--accent)' }}>{s.value}</div>
+                <div style={{ fontSize: 11, opacity: 0.55, marginTop: 2, fontWeight: 500, color: isDark ? '#fff' : 'var(--primary)' }}>{s.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* A NOSSA SOLUÇÃO */}
+        <div style={{ background: '#fff', padding: '52px 64px', borderBottom: '1px solid #ebebeb' }}>
+          <SectionLabel>A Nossa Solução</SectionLabel>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 48, alignItems: 'start' }}>
+            <div>
+              <h2 style={{ fontSize: 26, fontWeight: 800, color: 'var(--primary)', marginBottom: 16, letterSpacing: -0.5 }}>
+                Orçamentação assistida por IA para a construção em Portugal
+              </h2>
+              <p style={{ fontSize: 14, color: '#555', lineHeight: 1.8, fontWeight: 400 }}>
+                O técnico descreve a obra, carrega plantas, fotografias e documentos. A IA analisa tudo, gera a estrutura de trabalhos com quantidades e preços de mercado, e produz uma proposta profissional pronta a enviar ao cliente.
+              </p>
+            </div>
+            {/* Comparison table */}
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 2, color: 'var(--accent)', marginBottom: 14, textTransform: 'uppercase' }}>Resultados Comprovados</div>
+              <div style={{ borderRadius: 10, overflow: 'hidden', border: '1px solid #e4e4e2' }}>
+                {/* Header */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', background: 'var(--primary)' }}>
+                  <div style={{ padding: '10px 14px', fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.4)', letterSpacing: 1 }}></div>
+                  <div style={{ padding: '10px 14px', fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.5)', letterSpacing: 0.5, textAlign: 'center' }}>Processo Tradicional</div>
+                  <div style={{ padding: '10px 14px', fontSize: 11, fontWeight: 700, color: 'var(--accent)', letterSpacing: 0.5, textAlign: 'center' }}>Com MetrificAI</div>
+                </div>
+                {[
+                  { label: 'Tempo por orçamento', before: '8 a 10 horas', after: 'Menos de 1 hora' },
+                  { label: 'Orçamentos por dia', before: '1', after: '5 a 8' },
+                  { label: 'Custo por proposta', before: '~250 €', after: '~25 €' },
+                  { label: 'Poupança', before: '—', after: '90%', highlight: true },
+                ].map((row, i) => (
+                  <div key={row.label} style={{
+                    display: 'grid', gridTemplateColumns: '1fr 1fr 1fr',
+                    background: i % 2 === 0 ? '#fafaf8' : '#fff',
+                    borderTop: '1px solid #eeede8'
+                  }}>
+                    <div style={{ padding: '11px 14px', fontSize: 12, fontWeight: 600, color: '#444' }}>{row.label}</div>
+                    <div style={{ padding: '11px 14px', fontSize: 12, color: '#999', textAlign: 'center', fontWeight: 400, textDecoration: row.highlight ? 'none' : 'none' }}>{row.before}</div>
+                    <div style={{ padding: '11px 14px', fontSize: 12, fontWeight: 700, color: row.highlight ? 'var(--accent)' : 'var(--primary)', textAlign: 'center' }}>{row.after}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* FUNCIONALIDADES DETALHADAS */}
+        <div style={{ background: '#fafaf8', padding: '52px 64px', borderBottom: '1px solid #ebebeb' }}>
+          <SectionLabel>Funcionalidades Principais</SectionLabel>
+          <h2 style={{ fontSize: 26, fontWeight: 800, color: 'var(--primary)', marginBottom: 28, letterSpacing: -0.5 }}>O que inclui a plataforma</h2>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 0, borderRadius: 10, overflow: 'hidden', border: '1px solid #e4e4e2' }}>
+            {[
+              { icon: 'zap', title: 'Geração automática por IA', text: 'Descreve a obra em linguagem natural. A IA cria a estrutura completa de trabalhos com grupos, capítulos, artigos, quantidades e preços unitários ajustados ao mercado português.' },
+              { icon: 'map', title: 'Interpretação de articulados', text: 'Importa automaticamente mapas de quantidades de concursos públicos em PDF, mantendo a numeração e estrutura original. Suporta múltiplos documentos em simultâneo.' },
+              { icon: 'camera', title: 'App mobile de visita de obra', text: 'Regista visitas com fotografias, gravações de áudio e notas. A IA gera automaticamente a ficha de visita em PDF.' },
+              { icon: 'file', title: 'Proposta profissional bilingue', text: 'Exporta em PDF com design profissional, QR code de acesso online, plano de pagamento e prazo de execução. Disponível em Português e Inglês.' },
+              { icon: 'cloud', title: 'Histórico e gestão', text: 'Todos os projectos ficam guardados na nuvem com histórico completo de versões e propostas geradas.' },
+            ].map((f, i) => (
+              <div key={f.title} style={{
+                display: 'flex', gap: 16, alignItems: 'flex-start',
+                padding: '18px 20px',
+                background: '#fff',
+                borderTop: i > 0 ? '1px solid #eeede8' : 'none'
+              }}>
+                <div style={{
+                  width: 36, height: 36, borderRadius: 8,
+                  background: 'var(--accent-dim)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
+                }}>
+                  <Icon name={f.icon} size={18} />
+                </div>
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--primary)', marginBottom: 4 }}>{f.title}</div>
+                  <div style={{ fontSize: 13, color: '#666', lineHeight: 1.65, fontWeight: 400 }}>{f.text}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Para o gestor + Modelo de acesso */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginTop: 16 }}>
+            <div style={{ background: 'var(--primary)', borderRadius: 10, padding: '22px 24px' }}>
+              <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 2, color: 'var(--accent)', marginBottom: 10, textTransform: 'uppercase' }}>Para o Gestor</div>
+              <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.65)', lineHeight: 1.7, fontWeight: 400 }}>
+                Dashboard com métricas de volume orçamentado, actividade por colaborador e controlo de custos de IA. Gestão de equipas com três níveis de acesso.
+              </p>
+            </div>
+            <div style={{ background: 'var(--primary)', borderRadius: 10, padding: '22px 24px' }}>
+              <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 2, color: 'var(--accent)', marginBottom: 10, textTransform: 'uppercase' }}>Modelo de Acesso</div>
+              <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.65)', lineHeight: 1.7, fontWeight: 400 }}>
+                Plataforma SaaS em subscrição mensal, sem instalação, acessível em qualquer browser. Configurável com a identidade visual da sua empresa.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* O PROBLEMA */}
+        <div style={{ background: '#fafaf8', padding: '52px 64px', borderBottom: '1px solid #ebebeb' }}>
+          <SectionLabel>O Problema</SectionLabel>
+          <h2 style={{ fontSize: 26, fontWeight: 800, color: 'var(--primary)', marginBottom: 24, letterSpacing: -0.5 }}>
+            Quantas horas perde a fazer orçamentos?
+          </h2>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+            {[
+              { icon: 'clock', title: 'Tempo perdido', text: 'Horas a construir tabelas Excel linha a linha após cada visita à obra.' },
+              { icon: 'chart', title: 'Preços inconsistentes', text: 'Sem histórico centralizado, os preços variam de obra para obra sem critério.' },
+              { icon: 'file', title: 'Propostas amadoras', text: 'Documentos sem apresentação profissional que fragilizam a credibilidade da empresa.' },
+            ].map(p => (
+              <div key={p.title} style={{
+                background: '#fff', borderRadius: 10, padding: '24px',
+                border: '1px solid #e8e8e6',
+                borderLeft: '3px solid var(--accent)'
+              }}>
+                <Icon name={p.icon} size={22} />
+                <div style={{ fontWeight: 700, fontSize: 14, marginTop: 12, marginBottom: 8, color: 'var(--primary)' }}>{p.title}</div>
+                <div style={{ fontSize: 13, lineHeight: 1.65, color: '#555', fontWeight: 400 }}>{p.text}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* COMO FUNCIONA */}
+        <div style={{ padding: '52px 64px', background: '#fff', borderBottom: '1px solid #ebebeb' }}>
+          <SectionLabel>Como Funciona</SectionLabel>
+          <h2 style={{ fontSize: 26, fontWeight: 800, color: 'var(--primary)', marginBottom: 36, letterSpacing: -0.5 }}>
+            3 passos. Da visita ao PDF.
+          </h2>
+          <div style={{ display: 'flex', gap: 0, position: 'relative' }}>
+            {/* connector line */}
+            <div style={{
+              position: 'absolute', top: 28, left: 44, right: 44, height: 2,
+              background: 'linear-gradient(90deg, var(--accent), var(--accent))',
+              opacity: 0.2, zIndex: 0
+            }}/>
+            {[
+              { num: '01', icon: 'camera', title: 'Carrega os ficheiros', text: 'Fotos da visita, notas de voz gravadas no local, plantas e documentos do projecto.' },
+              { num: '02', icon: 'brain', title: 'A IA analisa e gera', text: 'O Gemini cria um Mapa de Trabalhos estruturado com grupos, capítulos, artigos, quantidades e preços unitários.' },
+              { num: '03', icon: 'download', title: 'Exporta em PDF', text: 'Proposta profissional com branding da empresa pronta a entregar ao cliente — com um clique.' },
+            ].map((s, i) => (
+              <div key={s.num} style={{ flex: 1, position: 'relative', zIndex: 1, textAlign: 'center', padding: '0 12px' }}>
+                <div style={{
+                  width: 56, height: 56, borderRadius: '50%',
+                  background: 'var(--primary)', margin: '0 auto 20px',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  border: '3px solid var(--accent)'
+                }}>
+                  <Icon name={s.icon} size={22} color="#fff" />
+                </div>
+                <div style={{
+                  fontSize: 10, fontWeight: 800, letterSpacing: 2,
+                  color: 'var(--accent)', marginBottom: 8
+                }}>{s.num}</div>
+                <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--primary)', marginBottom: 8 }}>{s.title}</div>
+                <div style={{ fontSize: 13, color: '#666', lineHeight: 1.65, fontWeight: 400 }}>{s.text}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* IA INTERACTION */}
+        <div style={{ background: 'var(--primary)', padding: '52px 64px', borderBottom: '1px solid #222' }}>
+          <SectionLabel light>Interacção com a IA</SectionLabel>
+          <h2 style={{ fontSize: 26, fontWeight: 800, color: '#fff', marginBottom: 8, letterSpacing: -0.5 }}>
+            Afina o orçamento por chat — em texto ou por voz
+          </h2>
+          <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.55)', lineHeight: 1.7, marginBottom: 36, maxWidth: 560, fontWeight: 400 }}>
+            Conversa com a IA como farias com um assistente: pede ajustes, acrescenta trabalhos, remove itens. Obtém a estrutura de orçamento perfeita antes de exportar — sem uma única fórmula Excel.
+          </p>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
+            {/* Chat screenshot */}
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, color: 'var(--accent)', marginBottom: 12, textTransform: 'uppercase' }}>Chat IA · Texto e Voz</div>
+              <div style={{ borderRadius: 10, overflow: 'hidden', boxShadow: '0 12px 40px rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                <img src="uploads/Screenshot 2026-04-26 at 17.32.23.png" alt="Interface de chat IA" style={{ width: '100%', display: 'block' }} />
+              </div>
+              <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {[
+                  'Descreve a obra por texto ou grava áudio no local',
+                  'Pede alterações em linguagem natural',
+                  'A IA ajusta grupos, capítulos e artigos em tempo real',
+                ].map(t => (
+                  <div key={t} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+                    <div style={{ width: 16, height: 16, borderRadius: '50%', background: 'var(--accent-dim)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>
+                      <Icon name="check" size={10} />
+                    </div>
+                    <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)', fontWeight: 400, lineHeight: 1.5 }}>{t}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            {/* Sliders screenshot */}
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, color: 'var(--accent)', marginBottom: 12, textTransform: 'uppercase' }}>Sliders de Preço · Sem fórmulas</div>
+              <div style={{ borderRadius: 10, overflow: 'hidden', boxShadow: '0 12px 40px rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                <img src="uploads/Screenshot 2026-04-26 at 17.33.09.png" alt="Tabela com sliders de preço" style={{ width: '100%', display: 'block' }} />
+              </div>
+              <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {[
+                  'Ajusta preços unitários com um simples slider',
+                  'O total actualiza-se automaticamente',
+                  'Sem tabelas, sem fórmulas, sem erros de Excel',
+                ].map(t => (
+                  <div key={t} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+                    <div style={{ width: 16, height: 16, borderRadius: '50%', background: 'var(--accent-dim)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>
+                      <Icon name="check" size={10} />
+                    </div>
+                    <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)', fontWeight: 400, lineHeight: 1.5 }}>{t}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* PDF SHOWCASE */}
+        <div style={{ background: '#f0f4f4', padding: '52px 64px', borderBottom: '1px solid #dde8e8', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 48, alignItems: 'center' }}>
+          <div>
+            <SectionLabel>Exportação Profissional</SectionLabel>
+            <h2 style={{ fontSize: 26, fontWeight: 800, color: 'var(--primary)', marginBottom: 16, letterSpacing: -0.5 }}>
+              Proposta PDF pronta a entregar ao cliente
+            </h2>
+            <p style={{ fontSize: 14, color: '#555', lineHeight: 1.75, marginBottom: 24, fontWeight: 400 }}>
+              Com um clique, o MetrificAI gera uma proposta de orçamento em PDF com a tua marca — estruturada por especialidades, com resumo de valores, referência do projecto e QR code de acesso online.
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {[
+                'Branding e dados da tua empresa',
+                'Estrutura por grupos e capítulos',
+                'Totais por especialidade e valor global',
+                'Disponível em Português e Inglês',
+              ].map(t => (
+                <div key={t} style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                  <div style={{ width: 18, height: 18, borderRadius: '50%', background: 'var(--accent-dim)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <Icon name="check" size={11} />
+                  </div>
+                  <span style={{ fontSize: 13, color: '#444', fontWeight: 500 }}>{t}</span>
+                </div>
+              ))}
+            </div>
+            <div style={{ marginTop: 20, background: 'rgba(0,0,0,0.04)', borderRadius: 8, padding: '10px 14px', fontSize: 12, color: '#666', fontWeight: 500 }}>
+              💡 Exportação para Excel personalizado disponível como serviço adicional
+            </div>
+          </div>
+          <div style={{ position: 'relative' }}>
+            <div style={{ borderRadius: 12, overflow: 'hidden', boxShadow: '0 16px 48px rgba(0,0,0,0.18)', border: '1px solid #ddd' }}>
+              <img src="uploads/Screenshot 2026-04-26 at 17.36.11.png" alt="Proposta de Orçamento PDF" style={{ width: '100%', display: 'block' }} />
+            </div>
+            <div style={{
+              position: 'absolute', bottom: -12, right: -12,
+              background: 'var(--primary)', color: '#fff',
+              borderRadius: 8, padding: '8px 14px',
+              fontSize: 11, fontWeight: 700, letterSpacing: 0.5,
+              boxShadow: '0 4px 16px rgba(0,0,0,0.25)'
+            }}>PDF gerado por IA</div>
+          </div>
+        </div>
+
+        {/* FUNCIONALIDADES */}
+        <div style={{ background: 'var(--primary)', padding: '52px 64px', borderBottom: '1px solid #222' }}>
+          <SectionLabel light>Funcionalidades</SectionLabel>
+          <h2 style={{ fontSize: 26, fontWeight: 800, color: '#fff', marginBottom: 32, letterSpacing: -0.5 }}>
+            Tudo o que precisas para orçamentar obras com confiança
+          </h2>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16 }}>
+            {[
+              { icon: 'zap', title: 'Geração por IA', text: 'Orçamentos automáticos a partir de fotos, áudio, documentos e plantas — com leitura de áreas por divisão.' },
+              { icon: 'map', title: 'Leitura de Articulados', text: 'Importação e interpretação automática de Mapas de Quantidades externos.' },
+              { icon: 'euro', title: 'Histórico de Preços', text: 'Sugestão de preços com base em obras anteriores reais da tua empresa.' },
+              { icon: 'file', title: 'Estrutura Hierárquica', text: 'Grupos → Capítulos → Artigos com descrições completas para o cliente.' },
+              { icon: 'download', title: 'Exportação PDF', text: 'Proposta com branding da empresa gerada em PDF com um clique. Excel personalizado disponível como serviço adicional.' },
+              { icon: 'camera', title: 'Ficha de Visita', text: 'Relatório completo com fotos da visita e resumo técnico gerado pela IA.' },
+              { icon: 'cloud', title: 'Nuvem e Multi-obra', text: 'Todos os projectos armazenados na cloud, acessíveis em qualquer dispositivo.' },
+              { icon: 'users', title: 'Multi-utilizador', text: 'Gestão de equipa com permissões por função: admin, utilizador.' },
+              { icon: 'arrow', title: 'Propostas em Inglês', text: 'Exporta orçamentos em inglês para clientes internacionais — com um clique, sem tradução manual.' },
+              { icon: 'download', title: 'Excel Base da Empresa', text: 'Exportação para o modelo Excel interno da empresa. Serviço adicional por orçamento — mantém o teu formato de sempre.' },
+            ].map(f => (
+              <div key={f.title} style={{
+                display: 'flex', gap: 14, alignItems: 'flex-start',
+                background: 'rgba(255,255,255,0.04)',
+                border: '1px solid rgba(255,255,255,0.08)',
+                borderRadius: 8, padding: '16px 18px'
+              }}>
+                <div style={{
+                  width: 36, height: 36, borderRadius: 8,
+                  background: 'var(--accent-dim)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  flexShrink: 0
+                }}>
+                  <Icon name={f.icon} size={18} />
+                </div>
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: 13, color: '#fff', marginBottom: 4 }}>{f.title}</div>
+                  <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', lineHeight: 1.6, fontWeight: 400 }}>{f.text}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* DASHBOARD */}
+        <div style={{ background: '#fafaf8', padding: '52px 64px', borderBottom: '1px solid #ebebeb' }}>
+          <SectionLabel>Dashboard & Analítica</SectionLabel>
+          <h2 style={{ fontSize: 26, fontWeight: 800, color: 'var(--primary)', marginBottom: 28, letterSpacing: -0.5 }}>
+            Visão completa do negócio em tempo real
+          </h2>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 24 }}>
+            {[
+              { label: 'Orçamentos emitidos', value: '10', sub: 'últimos 30 dias' },
+              { label: 'Volume orçamentado', value: '498k €', sub: 'últimos 30 dias' },
+              { label: 'Obras activas', value: '4', sub: 'em curso' },
+              { label: 'Utilizadores activos', value: '3', sub: 'licenciados' },
+            ].map(m => (
+              <div key={m.label} style={{
+                background: '#fff', borderRadius: 10, padding: '18px 16px',
+                border: '1px solid #e8e8e6', textAlign: 'center'
+              }}>
+                <div style={{ fontSize: 26, fontWeight: 900, color: 'var(--primary)', letterSpacing: -1 }}>{m.value}</div>
+                <div style={{ fontSize: 10, fontWeight: 700, color: '#888', marginTop: 4, letterSpacing: 0.5, textTransform: 'uppercase' }}>{m.label}</div>
+                <div style={{ fontSize: 10, color: 'var(--accent)', marginTop: 2, fontWeight: 600 }}>{m.sub}</div>
+              </div>
+            ))}
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            {[
+              { icon: 'chart', title: 'Evolução semanal de orçamentos', text: 'Acompanha a cadência de propostas emitidas semana a semana.' },
+              { icon: 'euro', title: 'Volume por período', text: 'Valor total orçamentado com vista de 30 ou 90 dias.' },
+              { icon: 'users', title: 'Actividade por utilizador', text: 'Número de orçamentos e volume gerado por cada membro da equipa.' },
+              { icon: 'map', title: 'Histórico de preços unitários', text: 'Consulta os preços praticados em obras anteriores por categoria de trabalho.' },
+            ].map(d => (
+              <div key={d.title} style={{
+                display: 'flex', gap: 12, alignItems: 'flex-start',
+                background: '#fff', borderRadius: 8, padding: '14px 16px',
+                border: '1px solid #e8e8e6'
+              }}>
+                <Icon name={d.icon} size={18} />
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: 12, color: 'var(--primary)', marginBottom: 3 }}>{d.title}</div>
+                  <div style={{ fontSize: 12, color: '#777', lineHeight: 1.55, fontWeight: 400 }}>{d.text}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* SEGURANÇA + TECNOLOGIA */}
+        <div style={{ padding: '52px 64px', background: '#fff', borderBottom: '1px solid #ebebeb' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 40 }}>
+            {/* Segurança */}
+            <div>
+              <SectionLabel>Segurança & RGPD</SectionLabel>
+              <h2 style={{ fontSize: 20, fontWeight: 800, color: 'var(--primary)', marginBottom: 16, letterSpacing: -0.3 }}>
+                Os teus dados nunca saem da Europa
+              </h2>
+              <p style={{ fontSize: 13, color: '#555', lineHeight: 1.7, marginBottom: 20, fontWeight: 400 }}>
+                Todos os dados são processados e armazenados exclusivamente em servidores Google Cloud na Europa — Bélgica (<strong>europe-west1</strong>) e Holanda (<strong>europe-west4</strong>). Conformidade total com o RGPD.
+              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {[
+                  'Dados de clientes nunca saem do território europeu',
+                  'Conformidade total com o RGPD',
+                  'Infraestrutura certificada Google Cloud',
+                  'Backups automáticos e encriptação em repouso',
+                ].map(t => (
+                  <div key={t} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+                    <div style={{
+                      width: 18, height: 18, borderRadius: '50%',
+                      background: 'var(--accent-dim)', display: 'flex',
+                      alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1
+                    }}>
+                      <Icon name="check" size={11} />
+                    </div>
+                    <span style={{ fontSize: 13, color: '#444', lineHeight: 1.5, fontWeight: 400 }}>{t}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Tecnologia */}
+            <div>
+              <SectionLabel>Tecnologia</SectionLabel>
+              <h2 style={{ fontSize: 20, fontWeight: 800, color: 'var(--primary)', marginBottom: 16, letterSpacing: -0.3 }}>
+                Powered by Google Gemini
+              </h2>
+              <div style={{
+                background: 'var(--primary)', borderRadius: 12, padding: '24px',
+                marginBottom: 16
+              }}>
+                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, color: 'var(--accent)', marginBottom: 12, textTransform: 'uppercase' }}>Stack Tecnológico</div>
+                {[
+                  { label: 'Google Gemini', sub: 'Vertex AI · Análise multimodal' },
+                  { label: 'Google Cloud', sub: 'europe-west1 & europe-west4' },
+                  { label: 'Cloud Storage', sub: 'Armazenamento seguro de projectos' },
+                  { label: 'Multi-tenant SaaS', sub: 'Isolamento por empresa' },
+                ].map((t, i) => (
+                  <div key={t.label} style={{
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                    padding: '10px 0',
+                    borderTop: i > 0 ? '1px solid rgba(255,255,255,0.07)' : 'none'
+                  }}>
+                    <div style={{ fontWeight: 700, fontSize: 13, color: '#fff' }}>{t.label}</div>
+                    <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', fontWeight: 400 }}>{t.sub}</div>
+                  </div>
+                ))}
+              </div>
+              <div style={{
+                background: 'var(--accent-dim)', border: '1px solid var(--accent-mid)',
+                borderRadius: 8, padding: '12px 16px',
+                display: 'flex', alignItems: 'center', gap: 10
+              }}>
+                <Icon name="zap" size={18} />
+                <div style={{ fontSize: 12, color: 'var(--primary)', fontWeight: 600, lineHeight: 1.4 }}>
+                  Inteligência artificial multimodal — lê fotos, áudio e documentos em simultâneo
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* CTA FINAL */}
+        <div style={{
+          background: 'var(--primary)',
+          padding: '60px 64px',
+          textAlign: 'center',
+          position: 'relative', overflow: 'hidden'
+        }}>
+          <div style={{
+            position: 'absolute', inset: 0, opacity: 0.04,
+            backgroundImage: 'radial-gradient(var(--accent) 1px, transparent 1px)',
+            backgroundSize: '24px 24px'
+          }}/>
+          <div style={{ position: 'relative', zIndex: 1 }}>
+            <div style={{
+              fontSize: 11, fontWeight: 800, letterSpacing: 3,
+              color: 'var(--accent)', marginBottom: 16, textTransform: 'uppercase'
+            }}>Começa hoje</div>
+            <h2 style={{ fontSize: 34, fontWeight: 900, color: '#fff', marginBottom: 16, letterSpacing: -1 }}>
+              Transforma a forma como orçamentas
+            </h2>
+            <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.55)', marginBottom: 36, maxWidth: 440, margin: '0 auto 36px', fontWeight: 400, lineHeight: 1.7 }}>
+              Experimenta o MetrificAI sem compromisso. Vê como a IA gera o teu primeiro orçamento em minutos.
+            </p>
+            <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+              <button style={{
+                background: 'var(--cta)', color: '#fff',
+                border: 'none', borderRadius: 8,
+                padding: '16px 36px', fontFamily: 'inherit',
+                fontWeight: 800, fontSize: 15, cursor: 'pointer',
+                letterSpacing: 0.3
+              }}>Solicitar Demonstração →</button>
+
+            </div>
+            <div style={{ marginTop: 40, fontSize: 12, color: 'rgba(255,255,255,0.3)', fontWeight: 400 }}>
+              metrificai.pt · contato@metrificai.pt · +351 900 000 000
+            </div>
+          </div>
+        </div>
+
+        {/* FOOTER */}
+        <div style={{
+          background: '#0a0a0a', padding: '16px 64px',
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+        }}>
+          <Logo size={18} light />
+          <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.25)', fontWeight: 400 }}>
+            © 2026 MetrificAI · Google Cloud Europa · RGPD Conforme
+          </div>
+          <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.25)', fontWeight: 400 }}>
+            Powered by Google Gemini · Vertex AI
+          </div>
+        </div>
+
+      </div>
+    </div>
+  );
+}
+
+function SectionLabel({ children, light = false }) {
+  return (
+    <div style={{
+      fontSize: 10, fontWeight: 800, letterSpacing: 2.5,
+      color: light ? 'var(--accent)' : 'var(--accent)',
+      textTransform: 'uppercase', marginBottom: 10,
+      display: 'flex', alignItems: 'center', gap: 8
+    }}>
+      <span style={{
+        display: 'inline-block', width: 20, height: 2,
+        background: 'var(--accent)', borderRadius: 1
+      }}/>
+      {children}
+    </div>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App />);
+</script>
+</body>
+</html>
